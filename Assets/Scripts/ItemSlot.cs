@@ -26,6 +26,11 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
 
     void Awake()
     {
+        // Slot selalu mulai kosong, walau prefab menyimpan nilai lama
+        itemName = "";
+        itemQuantity = 0;
+        itemIcon = null;
+        isFull = false;
         RefreshUI();
     }
 
@@ -42,7 +47,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
         AddQuantity(item.Quantity);
     }
 
-    // Slot berisi item yang sama dan masih muat
+   
     public bool CanStackWith(string otherItemName)
     {
         return !IsEmpty && !isFull && itemName == otherItemName;
@@ -87,13 +92,16 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
     private void LeftClick()
     {
         Debug.Log("Left Clicked on " + itemName);
+        inventoryManager.DesselectAllSlot();
         if (inventoryManager != null) inventoryManager.DesselectAllSlot();
         if (selectedPanel != null) selectedPanel.SetActive(true);
         isItemSelected = true;
+        selectedPanel.SetActive(true);
     }
 
     private void RightClick()
     {
         Debug.Log("Right Clicked on " + itemName);
     }
+    
 }

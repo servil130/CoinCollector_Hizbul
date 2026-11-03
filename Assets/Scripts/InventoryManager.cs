@@ -7,8 +7,8 @@ public class InventoryManager : MonoBehaviour, GrabableItem
     InputAction inventoryAction;
     [SerializeField] private GameObject InventoryCanvas;
     [SerializeField] private int slotCount = 16;
-    [SerializeField] private ItemSlot slotPrefab;     // opsional, kalau kosong pakai Resources/ItemSlot
-    [SerializeField] private Transform slotParent;    // opsional, kalau kosong cari Grid Layout Group
+    [SerializeField] private ItemSlot slotPrefab;     // drag FILE prefab Slot dari Project
+    [SerializeField] private Transform slotParent;    // objek ber-Grid Layout Group
     private bool InventoryActive;
     public ItemSlot[] itemSlot;
 
@@ -41,13 +41,13 @@ public class InventoryManager : MonoBehaviour, GrabableItem
         }
     }
 
-    // Build the slot objects at runtime so no manual wiring is needed in the scene
+    // Buat slot saat runtime
     private void CreateSlots()
     {
-        ItemSlot prefab = slotPrefab != null ? slotPrefab : Resources.Load<ItemSlot>("ItemSlot");
+        ItemSlot prefab = slotPrefab != null ? slotPrefab : Resources.Load<ItemSlot>("Slot");
         if (prefab == null)
         {
-            Debug.LogError("ItemSlot prefab was not found. Isi Slot Prefab atau taruh di folder Resources.", this);
+            Debug.LogError("Slot Prefab kosong dan 'Slot' tidak ada di folder Resources.", this);
             itemSlot = new ItemSlot[0];
             return;
         }
@@ -57,6 +57,7 @@ public class InventoryManager : MonoBehaviour, GrabableItem
         {
             GridLayoutGroup grid = InventoryCanvas.GetComponentInChildren<GridLayoutGroup>(true);
             parent = grid != null ? grid.transform : InventoryCanvas.transform;
+            Debug.LogWarning("Slot Parent kosong, memakai: " + parent.name, this);
         }
 
         itemSlot = new ItemSlot[slotCount];
@@ -76,7 +77,7 @@ public class InventoryManager : MonoBehaviour, GrabableItem
             return;
         }
 
-        // 1. Tambah ke slot yang sudah berisi item sama
+        
         for (int i = 0; i < itemSlot.Length; i++)
         {
             if (itemSlot[i].CanStackWith(item.ItemName))
@@ -86,7 +87,7 @@ public class InventoryManager : MonoBehaviour, GrabableItem
             }
         }
 
-        // 2. Kalau belum ada, pakai slot yang benar-benar kosong
+       
         for (int i = 0; i < itemSlot.Length; i++)
         {
             if (itemSlot[i].IsEmpty)
@@ -101,12 +102,11 @@ public class InventoryManager : MonoBehaviour, GrabableItem
 
     public void DesselectAllSlot()
     {
-        if (itemSlot == null) return;
 
         foreach (ItemSlot slot in itemSlot)
         {
             slot.isItemSelected = false;
-            if (slot.selectedPanel != null) slot.selectedPanel.SetActive(false);
+             slot.selectedPanel.SetActive(false);
         }
     }
 }

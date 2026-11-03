@@ -24,10 +24,17 @@ public class Item : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player") && ItemDetails != null && itemCollector != null)
+        if (!other.CompareTag("Player")) return;
+
+        if (ItemDetails == null)
         {
-            itemCollector.AddItem(ItemDetails);
-            Destroy(gameObject);
+            Debug.LogWarning("Item Details kosong di " + name + ". Drag asset Coin ke field Item Details.", this);
+            return;
         }
+
+        if (itemCollector == null) return;
+
+        itemCollector.AddItem(ItemDetails);
+        Destroy(gameObject);
     }
 }
