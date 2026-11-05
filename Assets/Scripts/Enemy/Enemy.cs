@@ -93,11 +93,17 @@ public class Enemy : MonoBehaviour, IDamageable
         Debug.Log("Enemy dalam keadaan Chase");
         if (status != null) status.text = "Enemy ngejar";
     }
-    void PerilakuAttack()
+   void PerilakuAttack()
+{
+    if (status != null) status.text = "Enemy menyerang";
+
+    // Serang hanya setiap jedaSerang detik (cooldown)
+    if (Time.time >= lastAttackTime + jedaSerang)
     {
-        Debug.Log("Enemy dalam keadaan Attack");
-        if (status != null) status.text = "Enemy menyerang";
+        lastAttackTime = Time.time;
+        Serang();
     }
+}
     public float JarakPlayer()
     {
         if (player == null) return Mathf.Infinity;

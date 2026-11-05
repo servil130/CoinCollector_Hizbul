@@ -34,7 +34,9 @@ public class Item : MonoBehaviour
 
         if (itemCollector == null) return;
 
-        itemCollector.AddItem(ItemDetails);
-        Destroy(gameObject);
+        if (itemCollector.AddItem(ItemDetails))
+        {
+            Destroy(gameObject);
+        }
     }
 }

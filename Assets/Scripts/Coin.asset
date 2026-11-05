@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: Coin
   m_EditorClassIdentifier: 
   itemName: coin
+  description: Pokoknya koin, kuning buat beli sesuatu, itu buat dana in negara bisa
+    tuh
   quantity: 1
   itemIcon: {fileID: -2413806693520163455, guid: 037508c475009954fa5009d6ed766d86, type: 3}

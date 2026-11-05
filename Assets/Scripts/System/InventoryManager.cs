@@ -7,8 +7,9 @@ public class InventoryManager : MonoBehaviour, GrabableItem
     InputAction inventoryAction;
     [SerializeField] private GameObject InventoryCanvas;
     [SerializeField] private int slotCount = 16;
-    [SerializeField] private ItemSlot slotPrefab;     // drag FILE prefab Slot dari Project
-    [SerializeField] private Transform slotParent;    // objek ber-Grid Layout Group
+    [SerializeField] private ItemSlot slotPrefab;     
+    [SerializeField] private Transform slotParent;   
+    [SerializeField] private ItemDetailsPanel detailsPanel;   
     private bool InventoryActive;
     public ItemSlot[] itemSlot;
 
@@ -24,6 +25,7 @@ public class InventoryManager : MonoBehaviour, GrabableItem
 
         if (InventoryCanvas != null) InventoryCanvas.SetActive(false);
         InventoryActive = false;
+        DesselectAllSlot();
     }
 
     void Update()
@@ -64,49 +66,99 @@ public class InventoryManager : MonoBehaviour, GrabableItem
         for (int i = 0; i < itemSlot.Length; i++)
         {
             itemSlot[i] = Instantiate(prefab, parent);
+            itemSlot[i].inventoryManager = this;
         }
     }
 
-    public void AddItem(ItemDetails item)
+
+    public bool AddItem(ItemDetails item)
     {
+        if (item == null) return false;
+
         Debug.Log("Item added to inventory: " + item.ItemName + " Quantity: " + item.Quantity);
 
         if (itemSlot == null || itemSlot.Length == 0)
         {
-            Debug.LogWarning("Inventory has no slots, '" + item.ItemName + "' was lost.");
-            return;
+            Debug.LogWarning("Inventory has no slots, '" + item.ItemName + "' was not added.");
+            return false;
         }
 
-        
-        for (int i = 0; i < itemSlot.Length; i++)
+        // Cek dulu apakah semuanya muat
+        int freeSpace = 0;
+        foreach (ItemSlot slot in itemSlot)
+        {
+            if (slot.IsEmpty || slot.CanStackWith(item.ItemName))
+                freeSpace += slot.FreeSpace;
+        }
+
+        if (freeSpace < item.Quantity)
+        {
+            Debug.LogWarning("Inventory is full, '" + item.ItemName + "' was not added.");
+            return false;
+        }
+
+        int remaining = item.Quantity;
+
+        for (int i = 0; i < itemSlot.Length && remaining > 0; i++)
         {
             if (itemSlot[i].CanStackWith(item.ItemName))
             {
-                itemSlot[i].AddQuantity(item.Quantity);
-                return;
+                remaining = itemSlot[i].AddQuantity(remaining);
             }
         }
 
-       
-        for (int i = 0; i < itemSlot.Length; i++)
+        for (int i = 0; i < itemSlot.Length && remaining > 0; i++)
         {
             if (itemSlot[i].IsEmpty)
             {
-                itemSlot[i].AddItem(item);
-                return;
+                remaining = itemSlot[i].AddItem(item, remaining);
             }
         }
 
-        Debug.LogWarning("Inventory is full, '" + item.ItemName + "' was lost.");
+        RefreshSelectedDetails();
+        return true;
+    }
+
+    
+    public void ShowDetails(ItemSlot slot)
+    {
+        detailsPanel.Show(slot);
+    }
+
+
+    public void OnSlotChanged(ItemSlot slot)
+    {
+        if (!slot.isItemSelected) return;
+
+        if (slot.IsEmpty)
+        {
+            slot.Deselect();
+            if (detailsPanel != null) detailsPanel.Hide();
+        }
+        else if (detailsPanel != null)
+        {
+            detailsPanel.Show(slot);
+        }
+    }
+
+  
+    private void RefreshSelectedDetails()
+    {
+        foreach (ItemSlot slot in itemSlot)
+        {
+            if (slot.isItemSelected) OnSlotChanged(slot);
+        }
     }
 
     public void DesselectAllSlot()
     {
+        
+            foreach (ItemSlot slot in itemSlot)
+            {
+                slot.Deselect();
+            }
+        
 
-        foreach (ItemSlot slot in itemSlot)
-        {
-            slot.isItemSelected = false;
-             slot.selectedPanel.SetActive(false);
-        }
+        if (detailsPanel != null) detailsPanel.Hide();
     }
 }
