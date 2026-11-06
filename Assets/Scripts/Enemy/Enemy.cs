@@ -13,6 +13,7 @@ public class Enemy : MonoBehaviour, IDamageable
     [SerializeField] private float waktuSumbu = 1.5f;
     [SerializeField] private float radiusLedakan = 2f;
     [SerializeField] private int damageLedakan = 20;
+    [SerializeField] private Color warnaKedip = Color.white;   // BARU
 
     private StateZpmbie currentState = StateZpmbie.Idle;
     private float sumbuMulai = -1f;
@@ -98,35 +99,34 @@ public class Enemy : MonoBehaviour, IDamageable
     protected void Mati()
     {
         Debug.Log($"{gameObject.name} mati!");
-        if (status != null) status.text = "Enemy mati";
         Destroy(gameObject);
     }
 
     void PerilakuIdle()
     {
-        if (status != null) status.text = "Enemy idle";
+       Debug.Log("Enemy idle");
     }
 
     void PerilakuPatrol()
     {
-        if (status != null) status.text = "Enemy patrol";
+        Debug.Log("Enemy patroli");
     }
 
     void PerilakuChase()
     {
         Kejar();
-        if (status != null) status.text = "Enemy ngejar";
+        Debug.Log("Enemy ngejar");
     }
 
     void PerilakuAttack()
     {
-        if (status != null) status.text = "Enemy mau meledak";
+        Debug.Log("Enemy mau meledak");
 
         if (sumbuMulai < 0f) sumbuMulai = Time.time;
 
-        // Kedip merah selama sumbu menyala
+        
         if (sr != null)
-            sr.color = Color.Lerp(warnaAsli, Color.red, Mathf.PingPong(Time.time * 6f, 1f));
+            sr.color = Color.Lerp(warnaAsli, warnaKedip, Mathf.PingPong(Time.time * 6f, 1f));   // BARU: warnaKedip menggantikan Color.red
 
         if (Time.time >= sumbuMulai + waktuSumbu) Serang();
     }

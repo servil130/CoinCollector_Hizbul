@@ -23,7 +23,7 @@ public class InventoryManager : MonoBehaviour, GrabableItem
 
         CreateSlots();
 
-        if (InventoryCanvas != null) InventoryCanvas.SetActive(false);
+        InventoryCanvas.SetActive(false);
         InventoryActive = false;
         DesselectAllSlot();
     }
@@ -34,6 +34,7 @@ public class InventoryManager : MonoBehaviour, GrabableItem
 
         if (inventoryAction.triggered)
         {
+            InventoryCanvas.SetActive(true);
             InventoryActive = !InventoryActive;
             Time.timeScale = InventoryActive ? 0f : 1f;
             InventoryCanvas.SetActive(InventoryActive);
