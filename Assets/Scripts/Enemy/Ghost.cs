@@ -6,7 +6,8 @@ public class Ghost : Enemy
     public bool isGhost = true;
 
     public override void Serang()
-    {
-        Debug.Log("Ghost menyerang!");
-    }
+{
+    Debug.Log("Ghost meletup");
+    base.Serang();
+}
 }

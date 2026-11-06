@@ -1,6 +1,5 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.UI;
 
 public class Enemy : MonoBehaviour, IDamageable
 {
@@ -9,11 +8,19 @@ public class Enemy : MonoBehaviour, IDamageable
     protected Transform player;
     [SerializeField] private float jarakDeteksi = 6f;
     [SerializeField] private float jarakSerang = 1.2f;
-    [SerializeField] private float jedaSerang= 1f;
+
+    [Header("Ledakan")]
+    [SerializeField] private float waktuSumbu = 1.5f;
+    [SerializeField] private float radiusLedakan = 2f;
+    [SerializeField] private int damageLedakan = 20;
 
     private StateZpmbie currentState = StateZpmbie.Idle;
-    private float lastAttackTime;
+    private float sumbuMulai = -1f;
+    private SpriteRenderer sr;
+    private Color warnaAsli;
+
     public TMP_Text status;
+
     protected virtual void Start()
     {
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -21,12 +28,19 @@ public class Enemy : MonoBehaviour, IDamageable
         {
             player = playerObj.transform;
         }
+
+        sr = GetComponentInChildren<SpriteRenderer>();
+        if (sr != null) warnaAsli = sr.color;
     }
 
     void Update()
     {
         PeriksaTransisi();
-        switch(currentState)
+
+        // Player menjauh sebelum sumbu habis: batalkan ledakan
+        if (currentState != StateZpmbie.Attack) ResetSumbu();
+
+        switch (currentState)
         {
             case StateZpmbie.Idle:
                 PerilakuIdle();
@@ -56,8 +70,18 @@ public class Enemy : MonoBehaviour, IDamageable
 
     public virtual void Serang()
     {
-        Debug.Log("Enemy menyerang!");
-        
+        Meledak();
+    }
+
+    protected void Meledak()
+    {
+        if (player != null && JarakPlayer() <= radiusLedakan)
+        {
+            IDamageable target = player.GetComponentInParent<IDamageable>();
+            if (target != null) target.KenaDamage(damageLedakan);
+        }
+
+        Mati();
     }
 
     public void KenaDamage(int jumlah)
@@ -71,59 +95,78 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 
-    private void Mati()
+    protected void Mati()
     {
         Debug.Log($"{gameObject.name} mati!");
         if (status != null) status.text = "Enemy mati";
         Destroy(gameObject);
     }
+
     void PerilakuIdle()
     {
-        Debug.Log("Enemy dalam keadaan Idle");
         if (status != null) status.text = "Enemy idle";
     }
+
     void PerilakuPatrol()
     {
-        Debug.Log("Enemy dalam keadaan Patrol");
         if (status != null) status.text = "Enemy patrol";
     }
+
     void PerilakuChase()
     {
         Kejar();
-        Debug.Log("Enemy dalam keadaan Chase");
         if (status != null) status.text = "Enemy ngejar";
     }
-   void PerilakuAttack()
-{
-    if (status != null) status.text = "Enemy menyerang";
 
-    // Serang hanya setiap jedaSerang detik (cooldown)
-    if (Time.time >= lastAttackTime + jedaSerang)
+    void PerilakuAttack()
     {
-        lastAttackTime = Time.time;
-        Serang();
+        if (status != null) status.text = "Enemy mau meledak";
+
+        if (sumbuMulai < 0f) sumbuMulai = Time.time;
+
+        // Kedip merah selama sumbu menyala
+        if (sr != null)
+            sr.color = Color.Lerp(warnaAsli, Color.red, Mathf.PingPong(Time.time * 6f, 1f));
+
+        if (Time.time >= sumbuMulai + waktuSumbu) Serang();
     }
-}
+
+    void ResetSumbu()
+    {
+        if (sumbuMulai < 0f) return;
+
+        sumbuMulai = -1f;
+        if (sr != null) sr.color = warnaAsli;
+    }
+
     public float JarakPlayer()
     {
         if (player == null) return Mathf.Infinity;
 
         return Vector2.Distance(transform.position, player.position);
     }
+
     void PeriksaTransisi()
     {
         float jarak = JarakPlayer();
 
-    if  (jarak <= jarakSerang)
-    {
-        currentState = StateZpmbie.Attack;
-    }else if (jarak <= jarakDeteksi)
-    {
-        currentState = StateZpmbie.Chase;
+        if (jarak <= jarakSerang)
+        {
+            currentState = StateZpmbie.Attack;
+        }
+        else if (jarak <= jarakDeteksi)
+        {
+            currentState = StateZpmbie.Chase;
+        }
+        else
+        {
+            currentState = StateZpmbie.Patrol;
+        }
     }
-    else
+
+    void OnDrawGizmosSelected()
     {
-        currentState = StateZpmbie.Patrol;
-    }
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, radiusLedakan);
     }
 }
